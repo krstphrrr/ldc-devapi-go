@@ -25,6 +25,23 @@ func parseOperator(operator string) (string, error) {
 		return "", fmt.Errorf("unsupported operator: %s", operator)
 	}
 }
+
+func parseBodyOperator(operator string) (string, error) {
+	switch operator {
+	case "$lt": // Less than
+		return "<", nil
+	case "$gt": // Greater than
+		return ">", nil
+	case "$lte": // Less than or equal
+		return "<=", nil
+	case "$gte": // Greater than or equal
+		return ">=", nil
+	case "$ne": // Not equal
+		return "<>", nil
+	default:
+		return "", fmt.Errorf("unsupported operator: %s", operator)
+	}
+}
 func ParseEncodedQuery(queryParams map[string][]string, valueIndex int, values *[]interface{}) (string, int, error) {
 	var sqlQuery strings.Builder
 
@@ -69,75 +86,6 @@ func ParseEncodedQuery(queryParams map[string][]string, valueIndex int, values *
 	return sqlQuery.String(), valueIndex, nil
 }
 
-// Map of valid operators and their SQL equivalents
-var validOperators = map[string]string{
-	"$lt":  "<",
-	"$gt":  ">",
-	"$lte": "<=",
-	"$gte": ">=",
-	"$ne":  "<>",
-}
-
-// Handle standard and operator-based queries
-func HandleQueryParam(key string, value interface{}, columnType string, valueIndex int) (string, []interface{}) {
-	var sqlFragment strings.Builder
-	var values []interface{}
-
-	switch v := value.(type) {
-	case string:
-		// Handle date parameters like "start" or "end"
-		if columnType == "date" && (key == "start" || key == "end") {
-			sqlFragment.WriteString(handleDateParam(key, v, valueIndex))
-			values = append(values, v)
-		} else {
-			sqlFragment.WriteString(fmt.Sprintf(` AND "%s" = $%d`, key, valueIndex))
-			values = append(values, v)
-		}
-	case map[string]interface{}:
-		// Handle operator-based queries like {"$gt": 10, "$lt": 20}
-		fragment, paramValues := handleOperatorBasedQuery(key, v, valueIndex)
-		sqlFragment.WriteString(fragment)
-		values = append(values, paramValues...)
-	case []interface{}:
-		// Handle arrays for queries like {"Name": ["Alice", "Bob"]}
-		fragment, paramValues := handleArrayParam(key, v, valueIndex)
-		sqlFragment.WriteString(fragment)
-		values = append(values, paramValues...)
-	default:
-		// Default handling for single values
-		sqlFragment.WriteString(fmt.Sprintf(` AND "%s" = $%d`, key, valueIndex))
-		values = append(values, value)
-	}
-
-	return sqlFragment.String(), values
-}
-
-// Handle date parameters (e.g., "start", "end")
-func handleDateParam(key string, value string, valueIndex int) string {
-	operator := ">="
-	if key == "end" {
-		operator = "<"
-	}
-	return fmt.Sprintf(` AND "DateVisited" %s $%d`, operator, valueIndex)
-}
-
-// Handle operator-based queries (e.g., {"$gt": 10})
-func handleOperatorBasedQuery(key string, operators map[string]interface{}, valueIndex int) (string, []interface{}) {
-	var sqlFragment strings.Builder
-	var values []interface{}
-
-	for op, val := range operators {
-		if operator, ok := validOperators[op]; ok {
-			sqlFragment.WriteString(fmt.Sprintf(` AND "%s" %s $%d`, key, operator, valueIndex))
-			values = append(values, val)
-			valueIndex++
-		} else {
-			panic(fmt.Sprintf("Invalid operator: %s", op))
-		}
-	}
-
-	return sqlFragment.String(), values
-}
 
 // Handle array parameters (e.g., {"Name": ["Alice", "Bob"]})
 func handleArrayParam(key string, valuesArray []interface{}, valueIndex int) (string, []interface{}) {
