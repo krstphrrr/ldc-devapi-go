@@ -3,14 +3,17 @@ package querybuilder
 import (
 	"database/sql"
 	"fmt"
+	"net/url"
+
+	// "regexp"
+
 	// "go-api-app/config"
 	"log"
 	"strings"
 )
 
 // GenerateQuery dynamically generates an SQL query based on input parameters.
-func GenerateQuery(table string, columns []string, queryParams map[string]interface{}) (string, []interface{}, error) {
-	
+func GenerateQuery(table string, columnTypes map[string]string, rawParams url.Values) (string, []interface{}, error) {
 	if table == "" {
 		return "", nil, fmt.Errorf("table name cannot be empty")
 	}
@@ -19,42 +22,34 @@ func GenerateQuery(table string, columns []string, queryParams map[string]interf
 	var values []interface{}
 	valueIndex := 1
 
-	// Wrap each column in double quotes to preserve case sensitivity
-	for i, col := range columns {
-		columns[i] = fmt.Sprintf(`"%s"`, col)
+	columns := make([]string, 0, len(columnTypes))
+	for col := range columnTypes {
+		columns = append(columns, fmt.Sprintf(`"%s"`, col))
 	}
-
 	// Start building the SQL query
 	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM public_test.%s WHERE 1 = 1", strings.Join(columns, ", "), table))
 
-	// Process query parameters for filters
-	for key, value := range queryParams {
-		switch key {
-		case "limit", "offset":
-			// Skip here; handle separately in AddLimitOffset
-		default:
-			sqlQuery.WriteString(fmt.Sprintf(" AND \"%s\" = $%d", key, valueIndex))
-			values = append(values, value)
-			valueIndex++
-		}
+	// Parse and append encoded query parameters
+	queryFragment, newIndex, err := ParseEncodedQuery(rawParams, valueIndex, &values)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to parse query parameters: %v", err)
 	}
+	sqlQuery.WriteString(queryFragment)
+	valueIndex = newIndex
 
-	// Add ORDER BY
+	// Add ORDER BY clause
 	sqlQuery.WriteString(" ORDER BY rid ASC")
 
-	// Append LIMIT and OFFSET
-	AddLimitOffsetToBuilder(&sqlQuery, queryParams)
 	log.Printf("Final generated query: %s", sqlQuery.String())
-
 	return sqlQuery.String(), values, nil
 }
 
-// FetchColumns dynamically fetches column names for the specified table or view.
-func FetchColumns(db *sql.DB, tableName string) ([]string, error) {
-	log.Printf("Fetching columns for table or view %s", tableName)
+// FetchColumns dynamically fetches column names and types for the specified table or view.
+func FetchColumns(db *sql.DB, tableName string) (map[string]string, error) {
+	log.Printf("Fetching columns and types for table or view %s", tableName)
 
 	query := fmt.Sprintf(`
-		SELECT column_name
+		SELECT column_name, data_type
 		FROM information_schema.columns
 		WHERE table_name = '%s'
 		  AND table_schema = 'public_test'
@@ -68,21 +63,21 @@ func FetchColumns(db *sql.DB, tableName string) ([]string, error) {
 	}
 	defer rows.Close()
 
-	var columns []string
+	columnTypes := make(map[string]string)
 	for rows.Next() {
-		var column string
-		if err := rows.Scan(&column); err != nil {
+		var columnName, dataType string
+		if err := rows.Scan(&columnName, &dataType); err != nil {
 			log.Printf("Error scanning column: %v", err)
-			return nil, fmt.Errorf("failed to scan column name: %v", err)
+			return nil, fmt.Errorf("failed to scan column name and type: %v", err)
 		}
-		columns = append(columns, column)
+		columnTypes[columnName] = dataType
 	}
 
-	if len(columns) == 0 {
+	if len(columnTypes) == 0 {
 		log.Printf("No columns found for table or view: %s", tableName)
 		return nil, fmt.Errorf("no columns found for table or view: %s", tableName)
 	}
 
-	log.Printf("Fetched columns for table %s: %v", tableName, columns)
-	return columns, nil
+	log.Printf("Fetched columns and types for table %s: %v", tableName, columnTypes)
+	return columnTypes, nil
 }
