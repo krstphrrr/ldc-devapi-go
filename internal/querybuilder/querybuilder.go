@@ -33,7 +33,7 @@ func GenerateQuery(table string, columns []string, queryParams map[string]interf
 		case "limit", "offset":
 			// Skip here; handle separately in AddLimitOffset
 		default:
-			sqlQuery.WriteString(fmt.Sprintf(" AND %s = $%d", key, valueIndex))
+			sqlQuery.WriteString(fmt.Sprintf(" AND \"%s\" = $%d", key, valueIndex))
 			values = append(values, value)
 			valueIndex++
 		}

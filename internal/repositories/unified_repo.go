@@ -6,10 +6,19 @@ import (
 	"go-api-app/internal/querybuilder"
 	"log"
 	"strings"
+	"go-api-app/internal/database"
 )
 
-func FetchData(db *sql.DB, table string, columns []string, queryParams map[string]interface{}) ([]map[string]interface{}, error) {
-	log.Printf("Generating query for table: %s, columns: %v, params: %v\n", table, columns, queryParams)
+func FetchDataForTenant(tenant string, db *sql.DB, table string, columns []string, queryParams map[string]interface{}) ([]map[string]interface{}, error) {
+	log.Printf("Fetching data for tenant: %s, table: %s\n", tenant, table)
+
+	// Get tenant-specific database connection
+	tenantDB, err := database.GetTenantDB(tenant)
+	if err != nil {
+		log.Printf("Failed to get database connection for tenant: %s, error: %v\n", tenant, err)
+		return nil, fmt.Errorf("failed to get database for tenant: %v", err)
+	}
+	defer tenantDB.Close()
 
 	// Generate the dynamic SQL query
 	sqlQuery, values, err := querybuilder.GenerateQuery(table, columns, queryParams)
@@ -20,7 +29,7 @@ func FetchData(db *sql.DB, table string, columns []string, queryParams map[strin
 	log.Printf("Generated query: %s, values: %v\n", sqlQuery, values)
 
 	// Execute the query
-	rows, err := db.Query(sqlQuery, values...)
+	rows, err := tenantDB.Query(sqlQuery, values...)
 	if err != nil {
 		log.Printf("Query execution failed for table: %s, error: %v\n", table, err)
 		return nil, fmt.Errorf("query execution failed: %v", err)
@@ -47,7 +56,7 @@ func FetchData(db *sql.DB, table string, columns []string, queryParams map[strin
 		}
 		results = append(results, row)
 	}
-	log.Printf("Fetched %d rows from table %s", len(results), table)
+	log.Printf("Fetched %d rows from table %s for tenant %s", len(results), table, tenant)
 
 	return results, nil
 }
