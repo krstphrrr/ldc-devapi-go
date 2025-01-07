@@ -16,3 +16,6 @@ go.work
 
 # Configuration files
 config.yaml
+
+# random notes
+**/notes.txt

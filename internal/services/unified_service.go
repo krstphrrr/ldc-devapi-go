@@ -42,12 +42,12 @@ func GenericDynamicDataHandler(w http.ResponseWriter, r *http.Request, db *sql.D
 
 
 	// Generate the query
-	query, params, err := querybuilder.GenerateQuery(tableName, columnTypes, r.URL.Query())
-	if err != nil {
-		log.Printf("Failed to generate query: %v\n", err)
-		http.Error(w, "Internal Server Error: Failed to generate query", http.StatusInternalServerError)
-		return
-	}
+	query, params, err := querybuilder.GenerateQuery(tableName, columnTypes, r.URL.Query(), r.URL.RawQuery)
+if err != nil {
+	log.Printf("Failed to generate query: %v", err)
+	http.Error(w, "Internal Server Error: Failed to generate query", http.StatusInternalServerError)
+	return
+}
 	log.Printf("Generated Query: %s\n", query)
 	log.Printf("Query Params: %v\n", params)
 	

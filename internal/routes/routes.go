@@ -2,11 +2,13 @@ package routes
 
 import (
 	"database/sql"
+	"encoding/json"
 	"net/http"
-	
-    "go-api-app/internal/middleware"
-	"go-api-app/internal/services"
+
 	"go-api-app/config"
+	"go-api-app/internal/middleware"
+	"go-api-app/internal/services"
+	"go-api-app/internal/version"
 )
 
 func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
@@ -36,4 +38,13 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
 			}
 		})))
 	}
+	mux.HandleFunc("/version", versionHandler)
+}
+func versionHandler(w http.ResponseWriter, r *http.Request) {
+    versionInfo := map[string]string{
+        "appName":   version.AppName,
+        "version":   version.Version,
+        "buildDate": version.BuildDate,
+    }
+    json.NewEncoder(w).Encode(versionInfo)
 }

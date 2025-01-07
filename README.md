@@ -1,9 +1,14 @@
 ## simple ldc api in golang
-- no fancy param parsing yet 
-- limit and offset good to go
-- no dates
-- no operators
-- no post routes
+- [x] operators work
+- [x] operators also used for dates (FormDate, DateVisited)
+- [x] POST request handling with operators
+- [x] limit/offset work
+- [x] aws cognito group discrimination works
+- [x] containerized 
+- [x] CICD-ready
+- [ ] unified logs with levels across the app
+- [ ] exceptions to the routes (like tblProject)
+- [ ] add aero data handling
 
 ### to use, include config.yaml at root level with this structure:
 ```yaml

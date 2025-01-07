@@ -8,22 +8,22 @@ import (
 )
 
 func parseOperator(operator string) (string, error) {
-	switch operator {
-	case "%3C", "<": // <
-		return "<", nil
-	case "%3E", ">": // >
-		return ">", nil
-	case "%3C%3D", "<=": // <=
-		return "<=", nil
-	case "%3E%3D", ">=": // >=
-		return ">=", nil
-	case "%21%3D", "!=": // !=
-		return "<>", nil
-	case "=": // =
-		return "=", nil
-	default:
-		return "", fmt.Errorf("unsupported operator: %s", operator)
-	}
+    switch operator {
+    case "%3C", "<": // <
+        return "<", nil
+    case "%3E", ">": // >
+        return ">", nil
+    case "%3C%3D", "<=": // <=
+        return "<=", nil
+    case "%3E%3D", ">=": // >=
+        return ">=", nil
+    case "%21%3D", "!=": // !=
+        return "<>", nil
+    case "=": // =
+        return "=", nil
+    default:
+        return "", fmt.Errorf("unsupported operator: %s", operator)
+    }
 }
 
 func parseBodyOperator(operator string) (string, error) {
@@ -42,50 +42,62 @@ func parseBodyOperator(operator string) (string, error) {
 		return "", fmt.Errorf("unsupported operator: %s", operator)
 	}
 }
-func ParseEncodedQuery(queryParams map[string][]string, valueIndex int, values *[]interface{}) (string, int, error) {
+func ParseEncodedQueryFromRaw(rawQuery string, valueIndex int, values *[]interface{}) (string, int, error) {
 	var sqlQuery strings.Builder
 
-	// Regular expression to capture column name and operator
-	re := regexp.MustCompile(`^([a-zA-Z0-9_]+)(%[0-9A-Za-z]{2}|[<>!=]+)?$`)
+	// Regular expression to capture column name, operator, and value
+	re := regexp.MustCompile(`(?P<key>[a-zA-Z0-9_]+)(?P<operator>%3C%3D|%3E%3D|%21%3D|%3C|%3E|<=|>=|<|>|=)?(?P<value>.+)?`)
 
-	for key, vals := range queryParams {
-		if len(vals) == 0 {
+	// Manually split raw query string
+	params := strings.Split(rawQuery, "&")
+
+	for _, param := range params {
+		// Match each parameter with regex
+		if strings.Contains(param, "limit") || strings.Contains(param, "offset") {
+            // Skip limit and offset parameters
+            continue
+        }
+		matches := re.FindStringSubmatch(param)
+		if len(matches) == 0 {
+			log.Printf("Invalid parameter format: %s", param)
 			continue
 		}
 
-		// Match the key to extract the column and operator
-		matches := re.FindStringSubmatch(key)
-		if len(matches) < 2 {
-			log.Printf("Invalid parameter format: %s", key)
-			continue
-		}
-
-		column := matches[1]
-		rawOperator := matches[2]
-
-		var operator string
-		var err error
-
-		if rawOperator == "" {
-			// Default to equality if no operator is specified
-			operator = "="
-		} else {
-			operator, err = parseOperator(rawOperator)
-			if err != nil {
-				log.Printf("Failed to parse operator: %v", err)
-				continue
+		// Map regex groups for easier access
+		groupNames := re.SubexpNames()
+		groups := map[string]string{}
+		for i, name := range groupNames {
+			if i != 0 && name != "" { // Ignore the full match at index 0
+				groups[name] = matches[i]
 			}
+		}
+
+		column := groups["key"]
+		rawOperator := groups["operator"]
+		value := groups["value"]
+
+		log.Printf("Processing parameter: %s, column: %s, operator: %s, value: %s", param, column, rawOperator, value)
+
+		if column == "" || rawOperator == "" || value == "" {
+			log.Printf("Missing key, operator, or value in parameter: %s", param)
+			continue
+		}
+
+		// Parse the operator
+		operator, err := parseOperator(rawOperator)
+		if err != nil {
+			log.Printf("Failed to parse operator: %v", err)
+			continue
 		}
 
 		// Add SQL fragment
 		sqlQuery.WriteString(fmt.Sprintf(` AND "%s" %s $%d`, column, operator, valueIndex))
-		*values = append(*values, vals[0]) // Assuming single value per key
+		*values = append(*values, value)
 		valueIndex++
 	}
 
 	return sqlQuery.String(), valueIndex, nil
 }
-
 
 // Handle array parameters (e.g., {"Name": ["Alice", "Bob"]})
 func handleArrayParam(key string, valuesArray []interface{}, valueIndex int) (string, []interface{}) {
@@ -99,19 +111,4 @@ func handleArrayParam(key string, valuesArray []interface{}, valueIndex int) (st
 
 	sqlFragment.WriteString(fmt.Sprintf(` AND "%s" IN (%s)`, key, strings.Join(placeholders, ", ")))
 	return sqlFragment.String(), valuesArray
-}
-
-
-func AddLimitOffsetToBuilder(sqlQuery *strings.Builder, parsedParams map[string]map[string]interface{}) {
-    // Handle LIMIT
-    if limit, ok := parsedParams["limit"]; ok {
-        log.Printf("Adding LIMIT: %v", limit)
-        sqlQuery.WriteString(fmt.Sprintf(" LIMIT %v", limit))
-    }
-
-    // Handle OFFSET
-    if offset, ok := parsedParams["offset"]; ok {
-        log.Printf("Adding OFFSET: %v", offset)
-        sqlQuery.WriteString(fmt.Sprintf(" OFFSET %v", offset))
-    }
 }

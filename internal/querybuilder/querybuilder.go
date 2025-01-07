@@ -13,14 +13,14 @@ import (
 )
 
 // GenerateQuery dynamically generates an SQL query based on input parameters.
-func GenerateQuery(table string, columnTypes map[string]string, rawParams url.Values) (string, []interface{}, error) {
+func GenerateQuery(table string, columnTypes map[string]string, rawParams url.Values, rawQuery string) (string, []interface{}, error) {
 	if table == "" {
 		return "", nil, fmt.Errorf("table name cannot be empty")
 	}
 
 	var sqlQuery strings.Builder
 	var values []interface{}
-	valueIndex := 1
+	// valueIndex := 1
 
 	columns := make([]string, 0, len(columnTypes))
 	for col := range columnTypes {
@@ -28,16 +28,26 @@ func GenerateQuery(table string, columnTypes map[string]string, rawParams url.Va
 	}
 	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM public_test.%s WHERE 1 = 1", strings.Join(columns, ", "), table))
 
-	// Parse all query parameters
-	queryFragment, _, err := ParseEncodedQuery(rawParams, valueIndex, &values)
-	if err != nil {
-		return "", nil, fmt.Errorf("failed to parse query parameters: %v", err)
-	}
-	sqlQuery.WriteString(queryFragment)
+	// Parse all query parameters except limit and offset
+    queryFragment, _, err := ParseEncodedQueryFromRaw(rawQuery, 1, &values)
+    if err != nil {
+        return "", nil, fmt.Errorf("failed to parse query parameters: %v", err)
+    }
+    sqlQuery.WriteString(queryFragment)
+    // valueIndex = newIndex
+	
 	
 
 	// Add ORDER BY clause
 	sqlQuery.WriteString(" ORDER BY rid ASC")
+
+	// Handle LIMIT and OFFSET separately
+    if limit := rawParams.Get("limit"); limit != "" {
+        sqlQuery.WriteString(fmt.Sprintf(" LIMIT %s", limit))
+    }
+    if offset := rawParams.Get("offset"); offset != "" {
+        sqlQuery.WriteString(fmt.Sprintf(" OFFSET %s", offset))
+    }
 
 	log.Printf("Final generated query: %s", sqlQuery.String())
 	return sqlQuery.String(), values, nil
