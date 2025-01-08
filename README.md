@@ -7,8 +7,8 @@
 - [x] containerized 
 - [x] CICD-ready
 - [ ] unified logs with levels across the app
-- [ ] exceptions to the routes (like tblProject)
-- [ ] add aero data handling
+- [x] exceptions to the routes (like tblProject)
+- [x] add aero data handling
 
 ### upticks
 
