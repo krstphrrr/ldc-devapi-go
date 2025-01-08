@@ -38,8 +38,10 @@ func GenerateQuery(table string, columnTypes map[string]string, rawParams url.Va
 	
 	
 
-	// Add ORDER BY clause
-	sqlQuery.WriteString(" ORDER BY rid ASC")
+	// Add ORDER BY clause if table name does not contain "tblProject"
+		if !strings.Contains(table, "tblproject") {
+			sqlQuery.WriteString(" ORDER BY rid ASC")
+		}
 
 	// Handle LIMIT and OFFSET separately
     if limit := rawParams.Get("limit"); limit != "" {
@@ -110,7 +112,10 @@ func GenerateQueryFromBody(table string, columnTypes map[string]string, body map
 	}
 
 	// Add ORDER BY clause
-	sqlQuery.WriteString(" ORDER BY rid ASC")
+	// Add ORDER BY clause if table name does not contain "tblProject"
+	if !strings.Contains(table, "tblproject") {
+		sqlQuery.WriteString(" ORDER BY rid ASC")
+	}
 
 	log.Printf("Final generated query: %s", sqlQuery.String())
 	return sqlQuery.String(), values, nil
