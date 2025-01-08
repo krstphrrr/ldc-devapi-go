@@ -46,7 +46,7 @@ func ParseEncodedQueryFromRaw(rawQuery string, valueIndex int, values *[]interfa
 	var sqlQuery strings.Builder
 
 	// Regular expression to capture column name, operator, and value
-	re := regexp.MustCompile(`(?P<key>[a-zA-Z0-9_]+)(?P<operator>%3C%3D|%3E%3D|%21%3D|%3C|%3E|<=|>=|<|>|=)?(?P<value>.+)?`)
+	re := regexp.MustCompile(`(?P<key>[a-zA-Z0-9_]+)(?P<operator>(%3C%3D|%3E%3D|%21%3D)|(%3C|%3E)|(<=|>=)|<|>|=)?(?P<value>.+)?`)
 
 	// Manually split raw query string
 	params := strings.Split(rawQuery, "&")
