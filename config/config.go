@@ -36,20 +36,20 @@ type AppConfig struct {
 
 
 var EndpointToTableMap = map[string]string{
-	"/dataLPI":     "datalpi_filtered_view",
-	"/dataHeader": "dataheader_filtered_view",
-	"/dataHeight": "dataheight_filtered_view",
-	"/dataGap": "datagap_filtered_view",
-	"/dataHorizontalFlux": "datahorizontalflux_filtered_view",
-	"/dataPlotCharacterization": "dataplotcharacterization_filtered_view",
-	"/dataSoilHorizons": "datasoilhorizons_filtered_view",
-	"/dataSoilStability": "datasoilstability_filtered_view",
-	"/dataSpeciesInventory": "dataspeciesinventory_filtered_view",
-	"/geoIndicators": "geoindicators_filtered_view",
-	"/geoSpecies": "geospecies_filtered_view",
-	"/tblRHEM": "tblrhem_filtered_view",
-	"/tblProject": "tblproject_filtered_view",
-	"/aeroSummary": "aero_summary",
+	"/dataLPI":     "public_test.datalpi_filtered_view",
+	"/dataHeader": "public_test.dataheader_filtered_view",
+	"/dataHeight": "public_test.dataheight_filtered_view",
+	"/dataGap": "public_test.datagap_filtered_view",
+	"/dataHorizontalFlux": "public_test.datahorizontalflux_filtered_view",
+	"/dataPlotCharacterization": "public_test.dataplotcharacterization_filtered_view",
+	"/dataSoilHorizons": "public_test.datasoilhorizons_filtered_view",
+	"/dataSoilStability": "public_test.datasoilstability_filtered_view",
+	"/dataSpeciesInventory": "public_test.dataspeciesinventory_filtered_view",
+	"/geoIndicators": "public_test.geoindicators_filtered_view",
+	"/geoSpecies": "public_test.geospecies_filtered_view",
+	"/tblRHEM": "public_test.tblrhem_filtered_view",
+	"/tblProject": "public_test.tblproject_filtered_view",
+	"/dataAeroSummary": "aero_data.aero_summary",
 }
 
 var Config AppConfig

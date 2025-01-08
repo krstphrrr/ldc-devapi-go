@@ -26,7 +26,7 @@ func GenerateQuery(table string, columnTypes map[string]string, rawParams url.Va
 	for col := range columnTypes {
 		columns = append(columns, fmt.Sprintf(`"%s"`, col))
 	}
-	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM public_test.%s WHERE 1 = 1", strings.Join(columns, ", "), table))
+ 	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM %s WHERE 1 = 1", strings.Join(columns, ", "), table))
 
 	// Parse all query parameters except limit and offset
     queryFragment, _, err := ParseEncodedQueryFromRaw(rawQuery, 1, &values)
@@ -118,39 +118,47 @@ func GenerateQueryFromBody(table string, columnTypes map[string]string, body map
 
 
 // FetchColumns dynamically fetches column names and types for the specified table or view.
-func FetchColumns(db *sql.DB, tableName string) (map[string]string, error) {
-	log.Printf("Fetching columns and types for table or view %s", tableName)
+func FetchColumns(db *sql.DB, fullTableName string) (map[string]string, error) {
+    log.Printf("Fetching columns and types for table or view %s", fullTableName)
 
-	query := fmt.Sprintf(`
-		SELECT column_name, data_type
-		FROM information_schema.columns
-		WHERE table_name = '%s'
-		  AND table_schema = 'public_test'
-		  ORDER BY ordinal_position
-	`, tableName)
+    // Split fullTableName into schema and table
+    parts := strings.Split(fullTableName, ".")
+    if len(parts) != 2 {
+        return nil, fmt.Errorf("invalid table name format: %s", fullTableName)
+    }
+    schemaName := parts[0]
+    tableName := parts[1]
 
-	rows, err := db.Query(query)
-	if err != nil {
-		log.Printf("Error fetching columns: %v", err)
-		return nil, fmt.Errorf("failed to fetch columns for table or view %s: %v", tableName, err)
-	}
-	defer rows.Close()
+    query := `
+        SELECT column_name, data_type
+        FROM information_schema.columns
+        WHERE table_name = $1
+          AND table_schema = $2
+        ORDER BY ordinal_position
+    `
 
-	columnTypes := make(map[string]string)
-	for rows.Next() {
-		var columnName, dataType string
-		if err := rows.Scan(&columnName, &dataType); err != nil {
-			log.Printf("Error scanning column: %v", err)
-			return nil, fmt.Errorf("failed to scan column name and type: %v", err)
-		}
-		columnTypes[columnName] = dataType
-	}
+    rows, err := db.Query(query, tableName, schemaName)
+    if err != nil {
+        log.Printf("Error fetching columns: %v", err)
+        return nil, fmt.Errorf("failed to fetch columns for table or view %s: %v", fullTableName, err)
+    }
+    defer rows.Close()
 
-	if len(columnTypes) == 0 {
-		log.Printf("No columns found for table or view: %s", tableName)
-		return nil, fmt.Errorf("no columns found for table or view: %s", tableName)
-	}
+    columnTypes := make(map[string]string)
+    for rows.Next() {
+        var columnName, dataType string
+        if err := rows.Scan(&columnName, &dataType); err != nil {
+            log.Printf("Error scanning column: %v", err)
+            return nil, fmt.Errorf("failed to scan column name and type: %v", err)
+        }
+        columnTypes[columnName] = dataType
+    }
 
-	log.Printf("Fetched columns and types for table %s: %v", tableName, columnTypes)
-	return columnTypes, nil
+    if len(columnTypes) == 0 {
+        log.Printf("No columns found for table or view: %s", fullTableName)
+        return nil, fmt.Errorf("no columns found for table or view: %s", fullTableName)
+    }
+
+    log.Printf("Fetched columns and types for table %s: %v", fullTableName, columnTypes)
+    return columnTypes, nil
 }

@@ -10,6 +10,13 @@
 - [ ] exceptions to the routes (like tblProject)
 - [ ] add aero data handling
 
+### upticks
+
+v1.0.1
+- exception to middleware routing
+- aerodata handling
+
+
 ### to use, include config.yaml at root level with this structure:
 ```yaml
 server:
