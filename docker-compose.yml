@@ -1,6 +1,6 @@
 services:
   ldcgoapi:
-    image: landscapedatacommons/ldc-go-api:1.0.0
+    image: landscapedatacommons/ldc-go-api:1.0.1
     build:
       context: .
     logging:
@@ -8,6 +8,13 @@ services:
       options:
         max-file: 3
         max-size: 10m
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy: 
+        condition: on-failure
     ports:
       - "8080:8080" 
     volumes:
