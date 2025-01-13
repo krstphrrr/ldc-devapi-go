@@ -32,17 +32,17 @@ func GenericDynamicDataHandler(w http.ResponseWriter, r *http.Request, db *sql.D
 		return
 	}
 
-	// Fetch column names and types dynamically
-	columnTypes, err := querybuilder.FetchColumns(db, tableName)
+	// Fetch column names and types 
+	columnTypes, err := querybuilder.FetchColumns(tableName)
 	if err != nil {
 		log.Printf("Failed to fetch columns for table: %s, error: %v\n", tableName, err)
-		http.Error(w, "Failed to fetch columns", http.StatusInternalServerError)
+		// http.Error(w, "Failed to fetch columns", http.StatusInternalServerError)
 		return
 	}
 
 
 	// Generate the query
-	query, params, err := querybuilder.GenerateQuery(tableName, columnTypes, r.URL.Query(), r.URL.RawQuery)
+	query, params, err := querybuilder.GenerateQuery(tableName, r.URL.Query(),columnTypes, r.URL.RawQuery)
 if err != nil {
 	log.Printf("Failed to generate query: %v", err)
 	http.Error(w, "Internal Server Error: Failed to generate query", http.StatusInternalServerError)
@@ -85,11 +85,11 @@ func GenericDynamicDataPostHandler(w http.ResponseWriter, r *http.Request, db *s
 		return
 	}
 
-	// Fetch column names and types dynamically
-	columnTypes, err := querybuilder.FetchColumns(db, tableName)
+	// Fetch column names and types
+	columnTypes, err := querybuilder.FetchColumns(tableName)
 	if err != nil {
 		log.Printf("Failed to fetch columns for table: %s, error: %v\n", tableName, err)
-		http.Error(w, "Failed to fetch columns", http.StatusInternalServerError)
+		// http.Error(w, "Failed to fetch columns", http.StatusInternalServerError)
 		return
 	}
 

@@ -11,6 +11,8 @@
 - [x] add aero data handling
 
 ### upticks
+v1.0.2
+- removed columns and columntypes db request
 
 v1.0.1
 - exception to middleware routing

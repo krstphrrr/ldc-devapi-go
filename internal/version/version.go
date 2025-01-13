@@ -2,6 +2,6 @@ package version
 
 var (
     AppName   = "ldc-go-api"
-    Version   = "1.0.1"
+    Version   = "1.0.2"
     BuildDate = "unknown"
 )

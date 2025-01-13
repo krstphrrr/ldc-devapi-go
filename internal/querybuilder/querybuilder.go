@@ -1,19 +1,19 @@
 package querybuilder
 
 import (
-	"database/sql"
+	// "database/sql"
 	"fmt"
 	"net/url"
 
 	// "regexp"
 
-	// "go-api-app/config"
+	"go-api-app/internal/schemas"
 	"log"
 	"strings"
 )
 
 // GenerateQuery dynamically generates an SQL query based on input parameters.
-func GenerateQuery(table string, columnTypes map[string]string, rawParams url.Values, rawQuery string) (string, []interface{}, error) {
+func GenerateQuery(table string, rawParams url.Values, columnTypes map[string]string, rawQuery string) (string, []interface{}, error) {
 	if table == "" {
 		return "", nil, fmt.Errorf("table name cannot be empty")
 	}
@@ -27,6 +27,7 @@ func GenerateQuery(table string, columnTypes map[string]string, rawParams url.Va
 		columns = append(columns, fmt.Sprintf(`"%s"`, col))
 	}
  	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM %s WHERE 1 = 1", strings.Join(columns, ", "), table))
+	//  sqlQuery.WriteString(fmt.Sprintf("SELECT * FROM %s WHERE 1 = 1", table))
 
 	// Parse all query parameters except limit and offset
 	queryFragment, _, err := ParseEncodedQueryFromRaw(rawQuery, 1, &values)
@@ -71,6 +72,7 @@ func GenerateQueryFromBody(table string, columnTypes map[string]string, body map
 		columns = append(columns, fmt.Sprintf(`"%s"`, col))
 	}
 	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM public_test.%s WHERE 1 = 1", strings.Join(columns, ", "), table))
+	// sqlQuery.WriteString(fmt.Sprintf("SELECT * FROM public_test.%s WHERE 1 = 1", table))
 
 	for key, condition := range body {
 		if _, exists := columnTypes[key]; !exists {
@@ -122,47 +124,21 @@ func GenerateQueryFromBody(table string, columnTypes map[string]string, body map
 
 
 // FetchColumns dynamically fetches column names and types for the specified table or view.
-func FetchColumns(db *sql.DB, fullTableName string) (map[string]string, error) {
-    log.Printf("Fetching columns and types for table or view %s", fullTableName)
+func FetchColumns(fullTableName string) (map[string]string, error) {
+	log.Printf("Fetching columns and types for table or view %s", fullTableName)
 
-    // Split fullTableName into schema and table
-    parts := strings.Split(fullTableName, ".")
-    if len(parts) != 2 {
-        return nil, fmt.Errorf("invalid table name format: %s", fullTableName)
-    }
-    schemaName := parts[0]
-    tableName := parts[1]
+	// Check if the table exists in the `TableSchemas` map
+	columnTypes, exists := schemas.TableSchemas[fullTableName]
+	if !exists {
+		log.Printf("Table schema not found for: %s", fullTableName)
+		return nil, fmt.Errorf("table schema not found for: %s", fullTableName)
+	}
 
-    query := `
-        SELECT column_name, data_type
-        FROM information_schema.columns
-        WHERE table_name = $1
-          AND table_schema = $2
-        ORDER BY ordinal_position
-    `
+	if len(columnTypes) == 0 {
+		log.Printf("No columns found for table or view: %s", fullTableName)
+		return nil, fmt.Errorf("no columns found for table or view: %s", fullTableName)
+	}
 
-    rows, err := db.Query(query, tableName, schemaName)
-    if err != nil {
-        log.Printf("Error fetching columns: %v", err)
-        return nil, fmt.Errorf("failed to fetch columns for table or view %s: %v", fullTableName, err)
-    }
-    defer rows.Close()
-
-    columnTypes := make(map[string]string)
-    for rows.Next() {
-        var columnName, dataType string
-        if err := rows.Scan(&columnName, &dataType); err != nil {
-            log.Printf("Error scanning column: %v", err)
-            return nil, fmt.Errorf("failed to scan column name and type: %v", err)
-        }
-        columnTypes[columnName] = dataType
-    }
-
-    if len(columnTypes) == 0 {
-        log.Printf("No columns found for table or view: %s", fullTableName)
-        return nil, fmt.Errorf("no columns found for table or view: %s", fullTableName)
-    }
-
-    log.Printf("Fetched columns and types for table %s: %v", fullTableName, columnTypes)
-    return columnTypes, nil
+	log.Printf("Fetched columns and types for table %s: %v", fullTableName, columnTypes)
+	return columnTypes, nil
 }

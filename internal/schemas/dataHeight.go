@@ -1,0 +1,33 @@
+package schemas
+
+// dataHeightSchema defines the column names and types for the `dataHeight` table.
+var DataHeightSchema = map[string]string{
+    "rid": "integer",
+    "PrimaryKey": "text",
+    "DBKey": "text",
+    "ProjectKey": "text",
+    "PointLoc": "double precision",
+    "PointNbr": "integer",
+    "RecKey": "text",
+    "Height": "double precision",
+    "Species": "text",
+    "Chkbox": "integer",
+    "type": "text",
+    "GrowthHabit_measured": "text",
+    "LineKey": "text",
+    "DateModified": "date",
+    "FormType": "text",
+    "FormDate": "date",
+    "source": "text",
+    "Direction": "text",
+    "Measure": "integer",
+    "LineLengthAmount": "integer",
+    "SpacingIntervalAmount": "text",
+    "SpacingType": "text",
+    "HeightOption": "text",
+    "HeightUOM": "text",
+    "ShowCheckbox": "integer",
+    "CheckboxLabel": "text",
+    "DateLoadedInDb": "date",
+    "DateVisited": "date",
+}

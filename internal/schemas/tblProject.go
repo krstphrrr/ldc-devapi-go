@@ -1,0 +1,33 @@
+package schemas
+
+// tblProjectSchema defines the column names and types for the `tblProject` table.
+var TblProjectSchema = map[string]string{
+    "project_key": "text",
+    "project_name": "text",
+    "project_description": "text",
+    "project_website": "text",
+    "data_use_agreement": "text",
+    "curator_PersonName": "text",
+    "curator_organization": "text",
+    "curator_email": "text",
+    "author_PersonName": "text",
+    "author_email": "text",
+    "author_orcid_id": "text",
+    "addit_contact_person": "text",
+    "addit_contact_email": "text",
+    "bibliographical_reference": "text",
+    "data_doi": "text",
+    "gap_collected": "text",
+    "height_collected": "text",
+    "line_point_intercept_collected": "text",
+    "soil_stability_collected": "text",
+    "species_collected": "text",
+    "horizontal_flux_collected": "text",
+    "rangelandhealth_collected": "text",
+    "plantdensity_collected": "text",
+    "tree_collected": "text",
+    "plantproduction_collected": "text",
+    "soilpit_collected": "text",
+    "data_access_type": "text",
+    "delay_range": "text",
+}
