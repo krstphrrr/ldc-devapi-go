@@ -89,5 +89,5 @@ var GeoIndicatorsSchema = map[string]string{
     "Runoff_Long_Term_MEAN": "double precision",
     "Sediment_Yield_Long_Term_MEAN": "double precision",
     "Soil_Loss_Long_Term_MEAN": "double precision",
-    "Precipitation_Yearly_Maximum_Daily_2_YR": "double precision",
+    // "Precipitation_Yearly_Maximum_Daily_2_YR": "double precision",
 }

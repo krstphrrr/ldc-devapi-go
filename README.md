@@ -11,6 +11,9 @@
 - [x] add aero data handling
 
 ### upticks
+v1.0.4 
+- geoindicators static schema at `/internal/schemas/geoIndicators.go` still referenced `"Precipitation_Yearly_Maximum_Daily_2_YR"`
+
 v1.0.3 
 - geoindicators static schema at `/internal/schemas/geoIndicators.go` still referenced `wkb_geometry`
 
