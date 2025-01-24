@@ -84,7 +84,7 @@ var GeoIndicatorsSchema = map[string]string{
     "us_l4name": "text",
     "State": "text",
     "modis_landcover": "text",
-    "wkb_geometry": "text",
+    // "wkb_geometry": "text",
     "Precipitation_Long_Term_MEAN": "double precision",
     "Runoff_Long_Term_MEAN": "double precision",
     "Sediment_Yield_Long_Term_MEAN": "double precision",

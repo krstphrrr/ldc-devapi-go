@@ -11,6 +11,9 @@
 - [x] add aero data handling
 
 ### upticks
+v1.0.3 
+- geoindicators static schema at `/internal/schemas/geoIndicators.go` still referenced `wkb_geometry`
+
 v1.0.2
 - removed columns and columntypes db request
 
