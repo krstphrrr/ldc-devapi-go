@@ -29,5 +29,5 @@ var TblProjectSchema = map[string]string{
     "plantproduction_collected": "text",
     "soilpit_collected": "text",
     "data_access_type": "text",
-    "delay_range": "text",
+    "delay_range": "ENUM(public_test.delay_range_enum)",
 }

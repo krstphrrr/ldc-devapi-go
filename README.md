@@ -11,6 +11,9 @@
 - [x] add aero data handling
 
 ### upticks
+v1.0.6
+- allowed enum on `tblProject`
+
 v1.0.5
 - enabled cors middleware on main
 

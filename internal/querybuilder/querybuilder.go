@@ -107,7 +107,12 @@ func GenerateQueryFromBody(table string, columnTypes map[string]string, body map
 			valueIndex += len(arrayValues)
 		default:
 			// Default equality condition
-			sqlQuery.WriteString(fmt.Sprintf(` AND "%s" = $%d`, key, valueIndex))
+			// sqlQuery.WriteString(fmt.Sprintf(` AND "%s" = $%d`, key, valueIndex))
+			if key == "delay_range" {
+				sqlQuery.WriteString(fmt.Sprintf(` AND "%s" = $%d::public_test.delay_range_enum`, key, valueIndex))
+			} else {
+				sqlQuery.WriteString(fmt.Sprintf(` AND "%s" = $%d`, key, valueIndex))
+			}
 			values = append(values, v)
 			valueIndex++
 		}

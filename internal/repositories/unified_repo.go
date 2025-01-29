@@ -51,8 +51,15 @@ func FetchDataForTenant(tenant string, db *sql.DB, query string, params []interf
 			return nil, fmt.Errorf("row scan failed: %v", err)
 		}
 
+		// for i, col := range columns {
+		// 	row[col] = *(columnPointers[i].(*interface{}))
+		// }
 		for i, col := range columns {
-			row[col] = *(columnPointers[i].(*interface{}))
+			if col == "delay_range" {
+				row[col] = fmt.Sprintf("%v", *(columnPointers[i].(*interface{}))) // Convert ENUM to string
+			} else {
+				row[col] = *(columnPointers[i].(*interface{}))
+			}
 		}
 		results = append(results, row)
 	}
