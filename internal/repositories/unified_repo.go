@@ -55,10 +55,19 @@ func FetchDataForTenant(tenant string, db *sql.DB, query string, params []interf
 		// 	row[col] = *(columnPointers[i].(*interface{}))
 		// }
 		for i, col := range columns {
+			rawValue := *(columnPointers[i].(*interface{}))
+		
 			if col == "delay_range" {
-				row[col] = fmt.Sprintf("%v", *(columnPointers[i].(*interface{}))) // Convert ENUM to string
+				switch v := rawValue.(type) {
+				case []uint8:  // postgreSQL ENUMs often return as []uint8 (byte slices)
+					row[col] = string(v)  // convert byte slice to string
+				case string:
+					row[col] = v  // I]if it's already a string, keep it
+				default:
+					row[col] = "UNKNOWN"  // unexpected cases
+				}
 			} else {
-				row[col] = *(columnPointers[i].(*interface{}))
+				row[col] = rawValue
 			}
 		}
 		results = append(results, row)
