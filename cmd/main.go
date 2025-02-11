@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
 	"go-api-app/config"
 	"go-api-app/internal/database"
 	"go-api-app/internal/routes"
+	"go-api-app/internal/version"
 )
 
 func corsMiddleware(next http.Handler) http.Handler {
@@ -55,6 +57,16 @@ func main() {
 
 	// Create a new HTTP multiplexer
 	mux := http.NewServeMux()
+
+	 // Register the root path endpoint
+	 mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]string{
+				"appVersion": version.Version,
+				"lastUpdated": version.BuildDate,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+})
 
 	// Register all routes under "/api/v1"
 	apiMux := http.NewServeMux()
