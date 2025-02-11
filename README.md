@@ -11,6 +11,9 @@
 - [x] add aero data handling
 
 ### upticks
+v1.0.7
+- fixes schema name duplication on POST request
+
 v1.0.6
 - allowed enum on `tblProject`
 
