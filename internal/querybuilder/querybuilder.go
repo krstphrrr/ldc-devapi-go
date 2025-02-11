@@ -71,7 +71,7 @@ func GenerateQueryFromBody(table string, columnTypes map[string]string, body map
 	for col := range columnTypes {
 		columns = append(columns, fmt.Sprintf(`"%s"`, col))
 	}
-	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM public_test.%s WHERE 1 = 1", strings.Join(columns, ", "), table))
+	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM %s WHERE 1 = 1", strings.Join(columns, ", "), table))
 	// sqlQuery.WriteString(fmt.Sprintf("SELECT * FROM public_test.%s WHERE 1 = 1", table))
 
 	for key, condition := range body {
