@@ -9,7 +9,8 @@ RUN go mod download
 COPY . .
 
 # Inject BuildDate Metadata
-RUN go build -ldflags="-X internal/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o ldcapi ./cmd
+ARG BUILD_DATE
+RUN go build -ldflags="-X 'go-api-app/internal/version.BuildDate=${BUILD_DATE}'" -o ldcapi ./cmd
 # Final Stage
 FROM debian:bookworm-slim
 # Install CA certificates

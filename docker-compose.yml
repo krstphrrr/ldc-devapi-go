@@ -1,8 +1,10 @@
 services:
   ldcgoapi:
-    image: landscapedatacommons/ldc-go-api:1.0.1
+    image: landscapedatacommons/ldc-go-api:1.0.7
     build:
       context: .
+      args:
+        BUILD_DATE: ${BUILD_DATE}
     logging:
       driver: "json-file"
       options:

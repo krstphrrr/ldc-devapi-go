@@ -11,6 +11,10 @@
 - [x] add aero data handling
 
 ### upticks
+v1.0.7
+- fixes schema name duplication on POST request
+- added a root path to display last updated on and app version number.
+
 v1.0.6
 - allowed enum on `tblProject`
 
@@ -29,6 +33,15 @@ v1.0.2
 v1.0.1
 - exception to middleware routing
 - aerodata handling
+
+### Manual building
+- update manually: `internal/version/version.go`, record uptick in `README.md`, and update docker image version on `docker-compose.yml` file. App version should correspond to docker image version.
+- depending on host environment, export build date environmental variable:
+```sh
+export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+```
+- run `docker compose build` to build the image.
+- deploy the stack: `docker stack deploy -c docker-compose.yml app-stack`. ensure that an external `ldc-go-net` attachable overlay network exists. (`docker network create ldc-go-net --attachable -d overlay`)
 
 
 ### to use, include config.yaml at root level with this structure:
