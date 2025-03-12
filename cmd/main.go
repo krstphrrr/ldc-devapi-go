@@ -122,5 +122,5 @@ func main() {
 	mux.Handle("/metrics", promhttp.Handler())
 	// Start the HTTP server
 	log.Println("Server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", mux))
 }
