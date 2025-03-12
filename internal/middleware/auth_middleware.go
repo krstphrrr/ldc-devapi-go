@@ -10,24 +10,28 @@ import (
 	"go-api-app/config"
 )
 
-// Custom context key
+// Custom context keys
 type contextKey string
 
-const TenantKey contextKey = "tenant"
+const (
+	TenantKey contextKey = "tenant"
+	UserIDKey contextKey = "user_id"
+)
 
+// AuthMiddleware verifies the JWT and extracts the user ID
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("AuthMiddleware: Started processing request.")
+		log.Println("AuthMiddleware: Processing request.")
 
 		tenant := "public" // Default tenant
+		userID := "anonymous" // Default user
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader != "" {
 			log.Println("AuthMiddleware: Authorization header found.")
 			token := strings.TrimPrefix(authHeader, "Bearer ")
 
-			// Use Cognito for verification
-			log.Println("AuthMiddleware: Verifying JWT with Cognito.")
+			// Verify the JWT with Cognito
 			verifiedToken, err := auth.VerifyJWTWithCognito(
 				token,
 				config.Config.AwsCognito.UserPoolId,
@@ -38,21 +42,24 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				log.Printf("AuthMiddleware: JWT verification failed. Error: %v\n", err)
 			} else {
 				log.Println("AuthMiddleware: JWT verified successfully.")
-				log.Printf("AuthMiddleware: Verified token claims: %v\n", verifiedToken)
 				tenant = groupDiscrimination(verifiedToken)
-				log.Printf("AuthMiddleware: Tenant determined: %s\n", tenant)
+
+				// Extract the Cognito User ID (sub)
+				if sub, ok := verifiedToken["sub"].(string); ok {
+					userID = sub
+				}
+				log.Printf("AuthMiddleware: User ID: %s, Tenant: %s\n", userID, tenant)
 			}
-		} else {
-			log.Println("AuthMiddleware: No Authorization header found. Defaulting to 'public' tenant.")
 		}
 
-		// Attach tenant to the context
+		// Attach tenant & user_id to context
 		ctx := context.WithValue(r.Context(), TenantKey, tenant)
-		log.Println("AuthMiddleware: Tenant added to context.")
+		ctx = context.WithValue(ctx, UserIDKey, userID)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
-		log.Println("AuthMiddleware: Request passed to the next handler.")
 	})
 }
+
 
 // groupDiscrimination determines the tenant based on groups in the verified JWT
 func groupDiscrimination(verifiedToken map[string]interface{}) string {

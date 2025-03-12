@@ -11,6 +11,9 @@
 - [x] add aero data handling
 
 ### upticks
+v1.0.8
+- added user + endpoint tracking for prometheus
+
 v1.0.7
 - fixes schema name duplication on POST request
 - added a root path to display last updated on and app version number.
