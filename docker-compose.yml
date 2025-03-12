@@ -1,6 +1,6 @@
 services:
   ldcgoapi:
-    image: landscapedatacommons/ldc-go-api:1.0.7
+    image: landscapedatacommons/ldc-go-api:1.0.8
     build:
       context: .
       args:
