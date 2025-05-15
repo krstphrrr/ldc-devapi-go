@@ -26,18 +26,16 @@ func GenerateQuery(table string, rawParams url.Values, columnTypes map[string]st
 	for col := range columnTypes {
 		columns = append(columns, fmt.Sprintf(`"%s"`, col))
 	}
- 	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM %s WHERE 1 = 1", strings.Join(columns, ", "), table))
+	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM %s WHERE 1 = 1", strings.Join(columns, ", "), table))
 	//  sqlQuery.WriteString(fmt.Sprintf("SELECT * FROM %s WHERE 1 = 1", table))
 
 	// Parse all query parameters except limit and offset
 	queryFragment, _, err := ParseEncodedQueryFromRaw(rawQuery, 1, &values)
 	if err != nil {
-			return "", nil, fmt.Errorf("failed to parse query parameters: %v", err)
+		return "", nil, fmt.Errorf("failed to parse query parameters: %v", err)
 	}
 	sqlQuery.WriteString(queryFragment)
 	// valueIndex = newIndex
-	
-	
 
 	// Add ORDER BY clause if table name does not contain "tblProject"
 	if !strings.Contains(table, "tblproject") {
@@ -46,17 +44,15 @@ func GenerateQuery(table string, rawParams url.Values, columnTypes map[string]st
 
 	// Handle LIMIT and OFFSET separately
 	if limit := rawParams.Get("limit"); limit != "" {
-			sqlQuery.WriteString(fmt.Sprintf(" LIMIT %s", limit))
+		sqlQuery.WriteString(fmt.Sprintf(" LIMIT %s", limit))
 	}
 	if offset := rawParams.Get("offset"); offset != "" {
-			sqlQuery.WriteString(fmt.Sprintf(" OFFSET %s", offset))
+		sqlQuery.WriteString(fmt.Sprintf(" OFFSET %s", offset))
 	}
 
 	log.Printf("Final generated query: %s", sqlQuery.String())
 	return sqlQuery.String(), values, nil
 }
-
-
 
 func GenerateQueryFromBody(table string, columnTypes map[string]string, body map[string]interface{}) (string, []interface{}, error) {
 	if table == "" {
@@ -72,7 +68,7 @@ func GenerateQueryFromBody(table string, columnTypes map[string]string, body map
 		columns = append(columns, fmt.Sprintf(`"%s"`, col))
 	}
 	sqlQuery.WriteString(fmt.Sprintf("SELECT %s FROM %s WHERE 1 = 1", strings.Join(columns, ", "), table))
-	// sqlQuery.WriteString(fmt.Sprintf("SELECT * FROM public_test.%s WHERE 1 = 1", table))
+	// sqlQuery.WriteString(fmt.Sprintf("SELECT * FROM public_dev.%s WHERE 1 = 1", table))
 
 	for key, condition := range body {
 		if _, exists := columnTypes[key]; !exists {
@@ -109,7 +105,7 @@ func GenerateQueryFromBody(table string, columnTypes map[string]string, body map
 			// Default equality condition
 			// sqlQuery.WriteString(fmt.Sprintf(` AND "%s" = $%d`, key, valueIndex))
 			if key == "delay_range" {
-				sqlQuery.WriteString(fmt.Sprintf(` AND "%s" = $%d::public_test.delay_range_enum`, key, valueIndex))
+				sqlQuery.WriteString(fmt.Sprintf(` AND "%s" = $%d::public_dev.delay_range_enum`, key, valueIndex))
 			} else {
 				sqlQuery.WriteString(fmt.Sprintf(` AND "%s" = $%d`, key, valueIndex))
 			}
@@ -126,7 +122,6 @@ func GenerateQueryFromBody(table string, columnTypes map[string]string, body map
 	log.Printf("Final generated query: %s", sqlQuery.String())
 	return sqlQuery.String(), values, nil
 }
-
 
 // FetchColumns dynamically fetches column names and types for the specified table or view.
 func FetchColumns(fullTableName string) (map[string]string, error) {
